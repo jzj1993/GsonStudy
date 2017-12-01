@@ -16,8 +16,8 @@ public class GsonUtils {
     static {
         // 优先级高的后注册
         gson = new GsonBuilder()
-                .registerTypeAdapterFactory(new NonNullStringFactory())
-                .registerTypeAdapterFactory(new DeserializeActionAdapterFactory())
+                .registerTypeAdapterFactory(new DeserializeActionFactory())
+                .registerTypeAdapterFactory(new NonNullFieldFactory())
                 .create();
     }
 

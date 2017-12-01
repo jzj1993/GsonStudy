@@ -14,7 +14,7 @@ import java.io.IOException;
  * 实现自动解析的各种Action
  * Created by jzj on 2017/11/22.
  */
-public class DeserializeActionAdapterFactory implements TypeAdapterFactory {
+public class DeserializeActionFactory implements TypeAdapterFactory {
 
     public <T> TypeAdapter<T> create(Gson gson, final TypeToken<T> type) {
 
@@ -33,17 +33,11 @@ public class DeserializeActionAdapterFactory implements TypeAdapterFactory {
 
                 public T read(JsonReader in) throws IOException {
                     T t = delegate.read(in);
-                    L.d(GsonUtils.TAG, "[DeserializeAction] read, data = %s, type = %s, delegate = %s", t, type, delegate);
-                    if (t instanceof IDataValidateAction) {
-                        if (!((IDataValidateAction) t).isDataValid()) {
-                            L.d(GsonUtils.TAG, "[DeserializeAction]     data is invalid");
-                            return null;
-                        }
+                    L.d(GsonUtils.TAG, "[DeserializeAction] finish read, data = %s, type = %s, delegate = %s", t, type, delegate);
+                    if (isInvalidData(t)) {
+                        return null;
                     }
-                    if (t instanceof IAfterDeserializeAction) {
-                        ((IAfterDeserializeAction) t).doAfterDeserialize();
-                        L.d(GsonUtils.TAG, "[DeserializeAction]     processed data = %s", t);
-                    }
+                    doAfterDeserialize(t);
                     return t;
                 }
             };
@@ -51,6 +45,23 @@ public class DeserializeActionAdapterFactory implements TypeAdapterFactory {
         } else {
             L.d(GsonUtils.TAG, "[DeserializeAction] create return delegate, type = %s, delegate = %s", type, delegate);
             return delegate;
+        }
+    }
+
+    public static boolean isInvalidData(Object t) {
+        if (t instanceof IDataValidateAction) {
+            if (!((IDataValidateAction) t).isDataValid()) {
+                L.d(GsonUtils.TAG, "[DeserializeAction]     --> data is invalid");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static <T> void doAfterDeserialize(Object t) {
+        if (t instanceof IAfterDeserializeAction) {
+            ((IAfterDeserializeAction) t).doAfterDeserialize();
+            L.d(GsonUtils.TAG, "[DeserializeAction]     --> processed data = %s", t);
         }
     }
 
